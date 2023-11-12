@@ -62,60 +62,6 @@ void SetHeatHazeEnabled ( bool bEnabled )
         MemPut < BYTE > ( 0x701780, 0xC3 );
 }
 
-void checkForUpdate() {
-	remove("crashes.delete");
-	HINTERNET hNet, hNetFile;
-
-	hNet = InternetOpenA("Mozilla/5.0", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
-	if(hNet == NULL)
-		return;
-
-		hNetFile = InternetOpenUrlA(hNet, "https://raw.githubusercontent.com/Whitetigerswt/gtasa_crashfix/master/LatestVersion.txt", 0, 0, 0, 0);
-
-	if(hNetFile == NULL)
-		return;
-
-	char szLatestVersion[256];
-	DWORD dwBytesRead = 0;
-	do {
-		InternetReadFile(hNetFile, (LPVOID)szLatestVersion, 256, &dwBytesRead);
-	} while(dwBytesRead > 0);
-
-	float version;
-	char* url = new char[200];
-	sscanf_s(szLatestVersion, "%f %s", &version, url, 200);
-
-	if(version > VERSION) {
-		DeleteUrlCacheEntry(url);
-
-		char currentDir[MAX_PATH + 15];
-		GetCurrentDirectory( MAX_PATH, currentDir );
-
-		strcat_s(currentDir, "\\crashes.delete_");
-
-		DeleteFile(currentDir);
-
-		HRESULT hr = URLDownloadToFile(NULL, url, currentDir, 0, NULL); 
-
-		if(SUCCEEDED(hr)) {
-			char currentMod[MAX_PATH + 15];
-			GetModuleFileName(g_hMod, currentMod, MAX_PATH+15);
-
-			currentMod[strlen(currentMod)] = '\0';
-
-			rename(currentMod, "crashes.delete");
-
-			rename(currentDir, "crashes.asi");
-
-			LoadLibrary("crashes.asi");
-			delete[] url;
-
-			FreeLibraryAndExitThread(g_hMod, 0);
-		}
-	}
-	delete[] url;
-}
-
 
 static void WINAPI Load(HMODULE hModule) 
 {
@@ -143,10 +89,10 @@ static void WINAPI Load(HMODULE hModule)
 	MemCpy((void*)0x074872D, "\x90\x90\x90\x90\x90\x90\x90\x90\x90", 9);
 
 	// Hack to make SA-MP think the game is always unpaused
-	MemCpy((void*)0x53E9B3, "\x75\x44\x90\x90\x90\x90", 6); // jne 0x53E9F9
+	//MemCpy((void*)0x53E9B3, "\x75\x44\x90\x90\x90\x90", 6); // jne 0x53E9F9
 
 	// Hack to make the game run in the background when paused
-	MemPut < BYTE >(0x561AF6, 0x00); // mov byte ptr [0xB7CB49],01 -> mov byte ptr [0xB7CB49],00
+	//MemPut < BYTE >(0x561AF6, 0x00); // mov byte ptr [0xB7CB49],01 -> mov byte ptr [0xB7CB49],00
 
 
 	// NOTE: all the alt tab hooks here are not working. not sure why.
@@ -521,13 +467,13 @@ static void WINAPI Load(HMODULE hModule)
 		ofile << "clouds 0" << endl;
 		ofile << "flashes 0" << endl;
 		ofile << "fixblackroads 1" << endl;
-		ofile << "interiorreflections 1" << endl;
+		ofile << "interiorreflections 0" << endl;
 		ofile << "fpslimit 0" << endl;
 		ofile << "nopostfx 0" << endl;
 		ofile.close();
 
 		brightness = -1;
-		mousefix = 1;
+		mousefix = 0;
 
 		path.append("_readme.txt");
 
@@ -551,8 +497,6 @@ static void WINAPI Load(HMODULE hModule)
 		readfile << "nopostfx - set to 1 to disable post effects." << endl;
 		readfile.close();
 	}
-
-	checkForUpdate();
 	
 	bool laststate = false;
 	int previousbrightness = -1;
@@ -560,9 +504,7 @@ static void WINAPI Load(HMODULE hModule)
 	{
 		while (true) {
 
-			TCHAR wintitle[50];
-			ZeroMemory(wintitle, sizeof(wintitle));
-
+			TCHAR wintitle[50] = { 0 };
 			HWND hwnd = *(HWND*)0xC97C1C;
 			HWND ActiveWin = GetForegroundWindow();  // Gets a handle to the window..
 

@@ -43,7 +43,6 @@ void __declspec(naked) FPSStrafeHook() {
 
 bool quickLoadPatches( )
 {
-
 	unsigned long dwValue;
 
 	DWORD dwSAMPBase = NULL;
@@ -56,35 +55,37 @@ bool quickLoadPatches( )
 
 	if (dwSAMPBase != NULL)
 	{
-
-
 		DWORD dwConnectDelay = 0;
 
-		if (*(int*)(dwSAMPBase + 0x77A3) == 3000) { // 0.3z-R2
-			dwConnectDelay = dwSAMPBase + 0x77A3;
-		}
-		else if (*(int*)(dwSAMPBase + 0x2AE035) == 3000) { // 0.3z R1
-			dwConnectDelay = dwSAMPBase + 0x2AE035;
-		}
-		else if (*(int*)(dwSAMPBase + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
-			dwConnectDelay = dwSAMPBase + 0x244A7E;
-		}
-		else if (*(int*)(dwSAMPBase + 0x295074) == 3000) { // 0.3x-R2-pre-release 1
-			dwConnectDelay = dwSAMPBase + 0x295074;
-		}
-		else if (*(int*)(dwSAMPBase + 0x2CD600) == 3000) { // 0.3x-R1-2
-			dwConnectDelay = dwSAMPBase + 0x2CD600;
-		}
-		else if (*(int*)(dwSAMPBase + 0x2607DC) == 3000) { // 0.3x
-			dwConnectDelay = dwSAMPBase + 0x2607DC;
+		if (*(int*)(dwSAMPBase + 0x85E3) == 3000) { // 0.3.7-R3
+			dwConnectDelay = dwSAMPBase + 0x85E3;
 		}
 
-		if (dwConnectDelay == 0)
-		{
-			// 0.3.7 and beyond...
-			// y u encrypt functions that are harmless kye and make my job difficult?
-			//dwConnectDelay = FindLastPattern("\x3D\xB8\x0B\x00\x00\x0F", "xxxxx") + 0x1;
-		}
+		//if (*(int*)(dwSAMPBase + 0x77A3) == 3000) { // 0.3z-R2
+		//	dwConnectDelay = dwSAMPBase + 0x77A3;
+		//}
+		//else if (*(int*)(dwSAMPBase + 0x2AE035) == 3000) { // 0.3z R1
+		//	dwConnectDelay = dwSAMPBase + 0x2AE035;
+		//}
+		//else if (*(int*)(dwSAMPBase + 0x244A7E) == 3000) { // 0.3x-R2-pre-release 2
+		//	dwConnectDelay = dwSAMPBase + 0x244A7E;
+		//}
+		//else if (*(int*)(dwSAMPBase + 0x295074) == 3000) { // 0.3x-R2-pre-release 1
+		//	dwConnectDelay = dwSAMPBase + 0x295074;
+		//}
+		//else if (*(int*)(dwSAMPBase + 0x2CD600) == 3000) { // 0.3x-R1-2
+		//	dwConnectDelay = dwSAMPBase + 0x2CD600;
+		//}
+		//else if (*(int*)(dwSAMPBase + 0x2607DC) == 3000) { // 0.3x
+		//	dwConnectDelay = dwSAMPBase + 0x2607DC;
+		//}
+
+		//if (dwConnectDelay == 0)
+		//{
+		//	// 0.3.7 and beyond...
+		//	// y u encrypt functions that are harmless kye and make my job difficult?
+		//	//dwConnectDelay = FindLastPattern("\x3D\xB8\x0B\x00\x00\x0F", "xxxxx") + 0x1;
+		//}
 
 		if (dwConnectDelay > 0x1)
 		{
@@ -92,7 +93,6 @@ bool quickLoadPatches( )
 			VirtualProtect((LPVOID)dwConnectDelay, 4, PAGE_EXECUTE_READWRITE, &oldProt);
 			MemPutFast < int >(dwConnectDelay, 0);
 		}
-
 	}
 	
 
@@ -116,10 +116,10 @@ bool quickLoadPatches( )
 		patch(0x590A1E, &dwValue, 4); // Legal info fade-out
 	}
 
-	//if (check((void*)0x748C6B, 0xC6, "Show load game", true)) nop(0x748C6B, 7); // Show load game
-	//else if (check((void*)0x748CBB, 0xC6, "Show load game", false)) nop(0x748CBB, 7); // Show load game
-	//dwValue = 0x09;
-	//if (check((void*)0x5745DD, 0xC6, "Show load game", false)) patch(0x5745E3, &dwValue, 1); // Show load game
+	if (check((void*)0x748C6B, 0xC6, "Show load game", true)) nop(0x748C6B, 7); // Show load game
+	else if (check((void*)0x748CBB, 0xC6, "Show load game", false)) nop(0x748CBB, 7); // Show load game
+	dwValue = 0x09;
+	if (check((void*)0x5745DD, 0xC6, "Show load game", false)) patch(0x5745E3, &dwValue, 1); // Show load game
 
 	dwValue = 0x75;
 	if (check((void*)0x5737E0, 0x74, "Skip confim", false)) patch(0x5737E0, &dwValue, 1); // Skip confim
@@ -153,8 +153,8 @@ bool quickLoadPatches( )
 
 		dwValue = (long)&StartGame_Prox - 0x748D1F;
 		patch(0x748D1B, &dwValue, 4); // Show menu
-	} else
-	if (check((void*)0x748D6A, 0xE9, "Start Game", false))
+	}
+	else if (check((void*)0x748D6A, 0xE9, "Start Game", false))
 	{
 		memcpy(&pStart_Func, (void*)0x748D6B, 4);
 		pStart_Func += 0x748D6F;
